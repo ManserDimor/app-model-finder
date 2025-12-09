@@ -1,12 +1,10 @@
-/// <reference types="@testing-library/jest-dom" />
-import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render } from '@testing-library/react';
 import { VideoPlayer } from './VideoPlayer';
 
 // Mock HTMLMediaElement methods
 beforeAll(() => {
-  window.HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
-  window.HTMLMediaElement.prototype.pause = vi.fn();
+  window.HTMLMediaElement.prototype.play = jest.fn(() => Promise.resolve());
+  window.HTMLMediaElement.prototype.pause = jest.fn();
 });
 
 describe('VideoPlayer', () => {
@@ -36,7 +34,7 @@ describe('VideoPlayer', () => {
   });
 
   it('calls onTimeUpdate callback when provided', () => {
-    const onTimeUpdate = vi.fn();
+    const onTimeUpdate = jest.fn();
     render(<VideoPlayer {...defaultProps} onTimeUpdate={onTimeUpdate} />);
     
     const video = document.querySelector('video');
