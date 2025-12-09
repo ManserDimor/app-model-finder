@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { useStore } from './useStore';
 
 describe('useStore - Authentication', () => {

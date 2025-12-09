@@ -1,27 +1,22 @@
-/// <reference types="@testing-library/jest-dom" />
-import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Login from './Login';
 
 // Mock the store
-vi.mock('@/store/useStore', () => ({
+jest.mock('@/store/useStore', () => ({
   useStore: () => ({
-    login: vi.fn((email: string, _password: string) => {
+    login: jest.fn((email: string, _password: string) => {
       return email === 'test@example.com';
     }),
   }),
 }));
 
 // Mock useNavigate
-const mockNavigate = vi.fn();
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
 
 describe('Login Page', () => {
   const renderLogin = () => {
