@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@/store/useStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserDataSync } from "@/hooks/useUserDataSync";
 import { useToast } from "@/hooks/use-toast";
 
 const formatCount = (count: number) => {
@@ -18,6 +19,7 @@ const Channel = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
+  const { subscribeDb, unsubscribeDb } = useUserDataSync();
   const { channels, videos, subscriptions, subscribe, unsubscribe } = useStore();
 
   const channel = channels.find((c) => c.id === id);
@@ -34,16 +36,18 @@ const Channel = () => {
     );
   }
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!isAuthenticated) {
       toast({ title: "Please sign in to subscribe" });
       return;
     }
     if (isSubscribed) {
       unsubscribe(channel.id);
+      await unsubscribeDb(channel.id);
       toast({ title: `Unsubscribed from ${channel.name}` });
     } else {
       subscribe(channel.id);
+      await subscribeDb(channel.id);
       toast({ title: `Subscribed to ${channel.name}` });
     }
   };
