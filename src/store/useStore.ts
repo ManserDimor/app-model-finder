@@ -14,6 +14,7 @@ interface AppState {
   // Channels
   channels: Channel[];
   subscriptions: string[];
+  setSubscriptions: (subscriptions: string[]) => void;
   subscribe: (channelId: string) => void;
   unsubscribe: (channelId: string) => void;
 
@@ -23,10 +24,12 @@ interface AppState {
 
   // Watch history
   watchHistory: string[];
+  setWatchHistory: (history: string[]) => void;
   addToWatchHistory: (videoId: string) => void;
 
   // Liked videos
   likedVideos: string[];
+  setLikedVideos: (likedVideos: string[]) => void;
 
   // Playlists
   playlists: Playlist[];
@@ -76,6 +79,7 @@ export const useStore = create<AppState>()(
       // Channels
       channels: mockChannels,
       subscriptions: [],
+      setSubscriptions: (subscriptions) => set({ subscriptions }),
       subscribe: (channelId) =>
         set((state) => ({
           subscriptions: [...state.subscriptions, channelId],
@@ -98,6 +102,7 @@ export const useStore = create<AppState>()(
 
       // Watch history
       watchHistory: [],
+      setWatchHistory: (history) => set({ watchHistory: history }),
       addToWatchHistory: (videoId) =>
         set((state) => ({
           watchHistory: [
@@ -108,6 +113,7 @@ export const useStore = create<AppState>()(
 
       // Liked videos
       likedVideos: [],
+      setLikedVideos: (likedVideos) => set({ likedVideos }),
 
       // Playlists
       playlists: [],

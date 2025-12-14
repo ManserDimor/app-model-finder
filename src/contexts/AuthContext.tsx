@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 interface Profile {
   id: string;
   username: string;
-  email: string;
   avatar_url: string | null;
   description: string | null;
   subscribers: number;
@@ -42,9 +41,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      // Only select non-sensitive columns (email was removed from profiles table)
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, avatar_url, description, subscribers, created_at")
         .eq("id", userId)
         .maybeSingle();
 

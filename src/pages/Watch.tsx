@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/store/useStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserDataSync } from "@/hooks/useUserDataSync";
 import { useToast } from "@/hooks/use-toast";
 import { commentSchema } from "@/lib/validation";
 
@@ -25,6 +26,7 @@ const Watch = () => {
   const { toast } = useToast();
   const [commentText, setCommentText] = useState("");
   const { profile, isAuthenticated } = useAuth();
+  const { addToWatchHistoryDb, likeVideoDb, subscribeDb, unsubscribeDb } = useUserDataSync();
   const {
     videos,
     comments,
@@ -51,8 +53,12 @@ const Watch = () => {
     if (video) {
       updateVideoViews(video.id);
       addToWatchHistory(video.id);
+      // Also save to database if authenticated
+      if (isAuthenticated) {
+        addToWatchHistoryDb(video.id);
+      }
     }
-  }, [video?.id]);
+  }, [video?.id, isAuthenticated]);
 
   if (!video) {
     return (
@@ -64,12 +70,14 @@ const Watch = () => {
     );
   }
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!isAuthenticated) {
       toast({ title: "Please sign in to like videos" });
       return;
     }
     likeVideo(video.id);
+    // Save to database
+    await likeVideoDb(video.id);
   };
 
   const handleDislike = () => {
@@ -80,7 +88,7 @@ const Watch = () => {
     dislikeVideo(video.id);
   };
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!isAuthenticated) {
       toast({ title: "Please sign in to subscribe" });
       return;
@@ -88,9 +96,11 @@ const Watch = () => {
     if (!channel) return;
     if (isSubscribed) {
       unsubscribe(channel.id);
+      await unsubscribeDb(channel.id);
       toast({ title: `Unsubscribed from ${channel.name}` });
     } else {
       subscribe(channel.id);
+      await subscribeDb(channel.id);
       toast({ title: `Subscribed to ${channel.name}` });
     }
   };
