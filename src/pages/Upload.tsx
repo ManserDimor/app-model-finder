@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/store/useStore";
 import { useToast } from "@/hooks/use-toast";
 import { categories } from "@/data/mockData";
@@ -17,7 +18,8 @@ import { videoUploadSchema, getFirstError } from "@/lib/validation";
 const Upload = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentUser, isAuthenticated, addVideo } = useStore();
+  const { profile, isAuthenticated } = useAuth();
+  const { addVideo } = useStore();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -27,7 +29,7 @@ const Upload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; description?: string; category?: string; tags?: string }>({});
 
-  if (!isAuthenticated || !currentUser) {
+  if (!isAuthenticated || !profile) {
     return (
       <Layout>
         <div className="flex h-[50vh] items-center justify-center">
@@ -89,9 +91,9 @@ const Upload = () => {
       likes: 0,
       dislikes: 0,
       createdAt: new Date().toISOString(),
-      channelId: `channel-${currentUser.id}`,
-      channelName: currentUser.username,
-      channelAvatar: currentUser.avatar,
+      channelId: `channel-${profile.id}`,
+      channelName: profile.username,
+      channelAvatar: profile.avatar_url || "",
       tags: tags.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 20),
       category,
     };

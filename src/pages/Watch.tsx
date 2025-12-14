@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/store/useStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { commentSchema } from "@/lib/validation";
 
@@ -23,14 +24,13 @@ const Watch = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [commentText, setCommentText] = useState("");
+  const { profile, isAuthenticated } = useAuth();
   const {
     videos,
     comments,
     channels,
     subscriptions,
     likedVideos,
-    isAuthenticated,
-    currentUser,
     updateVideoViews,
     likeVideo,
     dislikeVideo,
@@ -96,7 +96,7 @@ const Watch = () => {
   };
 
   const handleComment = () => {
-    if (!isAuthenticated || !currentUser) {
+    if (!isAuthenticated || !profile) {
       toast({ title: "Please sign in to comment" });
       return;
     }
@@ -110,9 +110,9 @@ const Watch = () => {
     addComment({
       id: `comment-${Date.now()}`,
       videoId: video.id,
-      userId: currentUser.id,
-      username: currentUser.username,
-      userAvatar: currentUser.avatar,
+      userId: profile.id,
+      username: profile.username,
+      userAvatar: profile.avatar_url || "",
       content: commentText.trim(),
       likes: 0,
       createdAt: new Date().toISOString(),
@@ -210,11 +210,11 @@ const Watch = () => {
           <div className="mt-6">
             <h2 className="text-lg font-bold">{videoComments.length} Comments</h2>
 
-            {isAuthenticated && (
+            {isAuthenticated && profile && (
               <div className="mt-4 flex gap-4">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={currentUser?.avatar} alt={currentUser?.username} />
-                  <AvatarFallback>{currentUser?.username?.[0]}</AvatarFallback>
+                  <AvatarImage src={profile.avatar_url || ""} alt={profile.username} />
+                  <AvatarFallback>{profile.username?.[0]}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <Textarea

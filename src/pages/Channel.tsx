@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@/store/useStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 const formatCount = (count: number) => {
@@ -16,7 +17,8 @@ const formatCount = (count: number) => {
 const Channel = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const { channels, videos, subscriptions, subscribe, unsubscribe, isAuthenticated } = useStore();
+  const { isAuthenticated } = useAuth();
+  const { channels, videos, subscriptions, subscribe, unsubscribe } = useStore();
 
   const channel = channels.find((c) => c.id === id);
   const channelVideos = videos.filter((v) => v.channelId === id);
