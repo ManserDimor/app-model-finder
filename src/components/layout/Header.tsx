@@ -11,24 +11,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/store/useStore";
 
 export const Header = () => {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
-  const { 
-    currentUser, 
-    isAuthenticated, 
-    logout, 
-    setSearchQuery, 
-    sidebarOpen, 
-    setSidebarOpen 
-  } = useStore();
+  const { profile, isAuthenticated, signOut } = useAuth();
+  const { setSearchQuery, sidebarOpen, setSidebarOpen } = useStore();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchQuery(searchInput);
     navigate("/search");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
   };
 
   return (
@@ -84,14 +84,14 @@ export const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={currentUser?.avatar} alt={currentUser?.username} />
-                    <AvatarFallback>{currentUser?.username?.[0]}</AvatarFallback>
+                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.username} />
+                    <AvatarFallback>{profile?.username?.[0]}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
-                  <Link to={`/channel/${currentUser?.id}`} className="flex items-center gap-2">
+                  <Link to={`/channel/${profile?.id}`} className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Your Channel
                   </Link>
@@ -103,7 +103,7 @@ export const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="flex items-center gap-2">
+                <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2">
                   <LogOut className="h-4 w-4" />
                   Sign out
                 </DropdownMenuItem>
@@ -112,7 +112,7 @@ export const Header = () => {
           </>
         ) : (
           <Button asChild>
-            <Link to="/login">Sign in</Link>
+            <Link to="/auth">Sign in</Link>
           </Button>
         )}
       </div>

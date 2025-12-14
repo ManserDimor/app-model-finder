@@ -6,7 +6,6 @@ import {
   Clock,
   ThumbsUp,
   ListVideo,
-  Users,
   Flame,
   Music,
   Gamepad2,
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/useStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
@@ -40,7 +40,8 @@ const exploreItems = [
 
 export const Sidebar = () => {
   const location = useLocation();
-  const { sidebarOpen, subscriptions, channels, isAuthenticated } = useStore();
+  const { sidebarOpen, subscriptions, channels } = useStore();
+  const { isAuthenticated } = useAuth();
 
   const subscribedChannels = channels.filter((c) =>
     subscriptions.includes(c.id)
