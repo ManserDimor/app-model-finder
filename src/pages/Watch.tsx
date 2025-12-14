@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ThumbsUp, ThumbsDown, Share2, ListPlus, Flag } from "lucide-react";
@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/store/useStore";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { commentSchema } from "@/lib/validation";
 
 const formatViews = (views: number) => {
   if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
@@ -100,7 +100,12 @@ const Watch = () => {
       toast({ title: "Please sign in to comment" });
       return;
     }
-    if (!commentText.trim()) return;
+    
+    const result = commentSchema.safeParse({ content: commentText });
+    if (!result.success) {
+      toast({ title: result.error.errors[0]?.message || "Invalid comment", variant: "destructive" });
+      return;
+    }
 
     addComment({
       id: `comment-${Date.now()}`,
@@ -108,7 +113,7 @@ const Watch = () => {
       userId: currentUser.id,
       username: currentUser.username,
       userAvatar: currentUser.avatar,
-      content: commentText,
+      content: commentText.trim(),
       likes: 0,
       createdAt: new Date().toISOString(),
       replies: [],
@@ -213,11 +218,13 @@ const Watch = () => {
                 </Avatar>
                 <div className="flex-1">
                   <Textarea
-                    placeholder="Add a comment..."
+                    placeholder="Add a comment... (max 2000 characters)"
                     value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
+                    onChange={(e) => setCommentText(e.target.value.slice(0, 2000))}
                     className="min-h-[80px]"
+                    maxLength={2000}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">{commentText.length}/2000</p>
                   <div className="mt-2 flex justify-end gap-2">
                     <Button variant="ghost" onClick={() => setCommentText("")}>
                       Cancel
