@@ -12,6 +12,7 @@ import { useStore } from "@/store/useStore";
 import { useToast } from "@/hooks/use-toast";
 import { categories } from "@/data/mockData";
 import { v4 as uuidv4 } from "uuid";
+import { videoUploadSchema, getFirstError } from "@/lib/validation";
 
 const Upload = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Upload = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [errors, setErrors] = useState<{ title?: string; description?: string; category?: string; tags?: string }>({});
 
   if (!isAuthenticated || !currentUser) {
     return (
@@ -51,8 +53,19 @@ const Upload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description || !category) {
-      toast({ title: "Please fill in all required fields", variant: "destructive" });
+    setErrors({});
+
+    const result = videoUploadSchema.safeParse({ title, description, category, tags });
+    if (!result.success) {
+      const fieldErrors: { title?: string; description?: string; category?: string; tags?: string } = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as "title" | "description" | "category" | "tags";
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast({ title: getFirstError(result.error), variant: "destructive" });
       return;
     }
 
@@ -63,8 +76,8 @@ const Upload = () => {
 
     const newVideo = {
       id: uuidv4(),
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       thumbnailUrl: thumbnailFile 
         ? URL.createObjectURL(thumbnailFile) 
         : "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400",
@@ -79,7 +92,7 @@ const Upload = () => {
       channelId: `channel-${currentUser.id}`,
       channelName: currentUser.username,
       channelAvatar: currentUser.avatar,
-      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+      tags: tags.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 20),
       category,
     };
 
@@ -139,30 +152,42 @@ const Upload = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">Title * (3-100 characters)</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter video title"
+                  maxLength={100}
+                  className={errors.title ? "border-destructive" : ""}
                 />
+                {errors.title && (
+                  <p className="text-sm text-destructive">{errors.title}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{title.length}/100</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="description">Description * (10-5000 characters)</Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Enter video description"
                   rows={4}
+                  maxLength={5000}
+                  className={errors.description ? "border-destructive" : ""}
                 />
+                {errors.description && (
+                  <p className="text-sm text-destructive">{errors.description}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{description.length}/5000</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
+                  <SelectTrigger className={errors.category ? "border-destructive" : ""}>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -173,16 +198,24 @@ const Upload = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.category && (
+                  <p className="text-sm text-destructive">{errors.category}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma separated)</Label>
+                <Label htmlFor="tags">Tags (comma separated, max 20 tags)</Label>
                 <Input
                   id="tags"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="tutorial, programming, web"
+                  maxLength={500}
+                  className={errors.tags ? "border-destructive" : ""}
                 />
+                {errors.tags && (
+                  <p className="text-sm text-destructive">{errors.tags}</p>
+                )}
               </div>
 
               <Button type="submit" className="w-full" disabled={isUploading}>
